@@ -2,12 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const Kinesis = require('aws-sdk/clients/kinesis');
-const debug = require('debug')('engine:kinesis');
-const A = require('async');
-const _ = require('lodash');
+const Kinesis = require("aws-sdk/clients/kinesis");
+const debug = require("debug")("engine:kinesis");
+const A = require("async");
+const _ = require("lodash");
 
-function KinesisEngine (script, ee, helpers) {
+function KinesisEngine(script, ee, helpers) {
   this.script = script;
   this.ee = ee;
   this.helpers = helpers;
@@ -15,14 +15,15 @@ function KinesisEngine (script, ee, helpers) {
   return this;
 }
 
-KinesisEngine.prototype.createScenario = function createScenario (scenarioSpec, ee) {
+KinesisEngine.prototype.createScenario = function createScenario(scenarioSpec, ee) {
   const tasks = scenarioSpec.flow.map(rs => this.step(rs, ee));
 
   return this.compile(tasks, scenarioSpec.flow, ee);
 };
 
-KinesisEngine.prototype.step = function step (rs, ee) {
+KinesisEngine.prototype.step = function step(rs, ee) {
   const self = this;
+  const template = this.helpers.template;
 
   if (rs.loop) {
     const steps = rs.loop.map(loopStep => this.step(loopStep, ee));
@@ -31,33 +32,43 @@ KinesisEngine.prototype.step = function step (rs, ee) {
   }
 
   if (rs.log) {
-    return function log (context, callback) {
-      return process.nextTick(function () { callback(null, context); });
+    return function log(context, callback) {
+      return process.nextTick(function() {
+        callback(null, context);
+      });
     };
   }
 
   if (rs.think) {
-    return this.helpers.createThink(rs, _.get(self.config, 'defaults.think', {}));
+    return this.helpers.createThink(
+      rs,
+      _.get(self.config, "defaults.think", {})
+    );
   }
 
   if (rs.function) {
-    return function (context, callback) {
-      let func = self.config.processor[rs.function];
+    return function(context, callback) {
+      let func = self.script.config.processor[rs.function];
       if (!func) {
-        return process.nextTick(function () { callback(null, context); });
+        return process.nextTick(function() {
+          callback(null, context);
+        });
       }
 
-      return func(context, ee, function () {
+      return func(context, ee, function() {
         return callback(null, context);
       });
     };
   }
 
   if (rs.putRecord) {
-    return function putRecord (context, callback) {
-      const data = typeof rs.putRecord.data === 'object'
-            ? JSON.stringify(rs.putRecord.data)
-            : String(rs.putRecord.data);
+    return function putRecord(context, callback) {
+      rs.putRecord = template(rs.putRecord, context);
+      
+      const data =
+        typeof rs.putRecord.data === "object"
+          ? JSON.stringify(rs.putRecord.data)
+          : String(rs.putRecord.data);
 
       const params = {
         Data: data,
@@ -67,32 +78,32 @@ KinesisEngine.prototype.step = function step (rs, ee) {
         SequenceNumberForOrdering: rs.putRecord.sequenceNumberForOrdering
       };
 
-      ee.emit('request');
-      context.kinesis.putRecord(params, function (err, data) {
+      ee.emit("request");
+      context.kinesis.putRecord(params, function(err, data) {
         if (err) {
           debug(err);
-          ee.emit('error', err);
+          ee.emit("error", err);
           return callback(err, context);
         }
 
-        ee.emit('response', 0, 0, context._uid); // FIXME
+        ee.emit("response", 0, 0, context._uid); // FIXME
         debug(data);
         return callback(null, context);
       });
     };
   }
 
-  return function (context, callback) {
+  return function(context, callback) {
     return callback(null, context);
   };
 };
 
-KinesisEngine.prototype.compile = function compile (tasks, scenarioSpec, ee) {
+KinesisEngine.prototype.compile = function compile(tasks, scenarioSpec, ee) {
   const self = this;
-  return function scenario (initialContext, callback) {
-    const init = function init (next) {
+  return function scenario(initialContext, callback) {
+    const init = function init(next) {
       let opts = {
-        region: self.script.config.kinesis.region || 'us-east-1'
+        region: self.script.config.kinesis.region || "us-east-1"
       };
 
       if (self.script.config.kinesis.endpoint) {
@@ -100,21 +111,19 @@ KinesisEngine.prototype.compile = function compile (tasks, scenarioSpec, ee) {
       }
 
       initialContext.kinesis = new Kinesis(opts);
-      ee.emit('started');
+      ee.emit("started");
       return next(null, initialContext);
     };
 
     let steps = [init].concat(tasks);
 
-    A.waterfall(
-      steps,
-      function done (err, context) {
-        if (err) {
-          debug(err);
-        }
+    A.waterfall(steps, function done(err, context) {
+      if (err) {
+        debug(err);
+      }
 
-        return callback(err, context);
-      });
+      return callback(err, context);
+    });
   };
 };
 

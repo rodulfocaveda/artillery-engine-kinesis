@@ -1,7 +1,7 @@
 # Artillery.io AWS Kinesis Plugin
 
 <p align="center">
-    <em>Load test AWS Kinesis with <a href="https://artillery.io">Artillery.io</a></em>
+    <em>Load test AWS Kinesis with <a href="https://artillery.io">Artillery.io</a> Implementation of artillery's kinesis plugin with updates to allow for custom JS Functions to be used until they are resolved in the original <a href="https://github.com/artilleryio/artillery-engine-kinesis">package</a></em>
 </p>
 
 ## Why?
@@ -19,7 +19,7 @@ Take guesswork out of provisioning capacity for your Kinesis streams and make su
 
 ```
 # If Artillery is installed globally:
-npm install -g artillery-engine-kinesis
+npm install -g artillery-engine-kinesisStream
 ```
 
 ### Use the plugin
@@ -39,8 +39,8 @@ config:
     region: "us-east-1"
   # Emulate 10 publishers
   phases:
-    arrivalCount: 10
-    duration: 1
+   - arrivalCount: 10
+     duration: 1
   engines:
     kinesis: {}
 
