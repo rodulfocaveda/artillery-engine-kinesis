@@ -19,7 +19,7 @@ Take guesswork out of provisioning capacity for your Kinesis streams and make su
 
 ```
 # If Artillery is installed globally:
-npm install -g artillery-engine-kinesisStream
+npm install -g artillery-engine-kinesisstream
 ```
 
 ### Use the plugin
