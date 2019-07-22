@@ -101,7 +101,7 @@
          StreamName: rs.putRecords.streamName || self.script.config.target,
        };
  
-       console.log(`PARAMS: ${JSON.stringify(params)}`)
+       //console.log(`PARAMS: ${JSON.stringify(params)}`)
  
        ee.emit("request");
        context.kinesis.putRecords(params, function(err, data) {
