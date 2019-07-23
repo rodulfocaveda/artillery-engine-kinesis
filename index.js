@@ -28,7 +28,16 @@
    if (rs.loop) {
      const steps = rs.loop.map(loopStep => this.step(loopStep, ee));
  
-     return this.helpers.createLoopWithCount(rs.count || -1, steps);
+     return this.helpers.createLoopWithCount(
+         rs.count || -1, 
+         steps,
+         {
+            loopValue: rs.loopValue || '$loopCount',
+            loopElement: rs.loopElement || '$loopElement',
+            overValues: rs.over,
+            whileTrue: self.script.config.processor ?
+              self.script.config.processor[rs.whileTrue] : undefined
+          });
    }
  
    if (rs.log) {
