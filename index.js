@@ -82,7 +82,7 @@
        const params = {
          Data: data,
          PartitionKey: rs.putRecord.partitionKey,
-         StreamName: rs.putRecord.streamName || self.script.config.target,
+         StreamName: template(rs.putRecord.streamName, context) || template(self.script.config.target, context),
          ExplicitHashKey: rs.putRecord.explicitHashKey,
          SequenceNumberForOrdering: rs.putRecord.sequenceNumberForOrdering
        };
@@ -107,11 +107,9 @@
  
        const params = {
          Records: context.vars.records,
-         StreamName: rs.putRecords.streamName || self.script.config.target,
+         StreamName: template(rs.putRecord.streamName, context) || template(self.script.config.target, context),
        };
- 
-       //console.log(`PARAMS: ${JSON.stringify(params)}`)
- 
+  
        ee.emit("request");
        context.kinesis.putRecords(params, function(err, data) {
          if (err) {
