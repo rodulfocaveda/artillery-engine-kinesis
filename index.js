@@ -96,7 +96,8 @@
          }
  
          ee.emit("response", 0, 0, context._uid); // FIXME
-         debug(data);
+         debug(`DATA: ${JSON.stringify(data)}`);
+         debug(`CONTEXT: ${JSON.stringify(context)}`)
          return callback(null, context);
        });
      };
@@ -107,7 +108,7 @@
  
        const params = {
          Records: context.vars.records,
-         StreamName: template(rs.putRecord.streamName, context) || template(self.script.config.target, context),
+         StreamName: template(rs.putRecords.streamName, context) || template(self.script.config.target, context),
        };
   
        ee.emit("request");
@@ -119,7 +120,8 @@
          }
  
          ee.emit("response", 0, 0, context._uid); // FIXME
-         debug(data);
+         debug(`DATA: ${JSON.stringify(data)}`);
+         debug(`CONTEXT: ${JSON.stringify(context)}`)
          return callback(null, context);
        });
      };
