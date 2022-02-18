@@ -72,12 +72,12 @@
  
    if (rs.putRecord) {
      return function putRecord(context, callback) {
-       rs.putRecord = template(rs.putRecord, context);
+       const putRecord = template(rs.putRecord, context);
        
        const data =
-         typeof rs.putRecord.data === "object"
-           ? JSON.stringify(rs.putRecord.data)
-           : String(rs.putRecord.data);
+         typeof putRecord.data === "object"
+           ? JSON.stringify(putRecord.data)
+           : String(putRecord.data);
  
        const params = {
          Data: data,
